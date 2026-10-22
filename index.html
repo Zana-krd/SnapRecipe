@@ -1,0 +1,685 @@
+إليك الكود المكتمل والتفاعلي بالكامل لتطبيق SnapRecipe. تم تصميمه خصيصاً كصفحة واحدة قائمة بذاتها (Single-File App)، وهو متوافق تماماً ومثالي للاستخدام والتشغيل على جهاز الآيباد (iPad).
+📲 كيف تشغل التطبيق فوراً على جهاز الآيباد (iPad)؟
+ * طريقة الحفظ المباشرة:
+   * افتح تطبيق اللاحظات (Notes) أو أي أداة لإدارة الملفات (مثل تطبيق Files أو Textastic أو Koder) على جهاز الآيباد.
+   * انسخ الكود الموجود بالأسفل بالكامل والصقه في ملف جديد باسم: index.html.
+ * طريقة التجربة المباشرة في المتصفح:
+   * يمكنك رفع هذا الكود مجاناً بضغطة زر إلى موقع Netlify Drop أو Vercel عبر متصفح Safari على الآيباد، وسيعطيك فوراً رابطاً يعمل كتطبيق حقيقي.
+ * إضافته لشاشة الآيباد الرئيسية (PWA):
+   * بعد فتح الرابط في متصفح Safari على الآيباد، اضغط على زر المشاركة (Share) في أعلى الشاشة.
+   * اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
+   * سيظهر تطبيق SnapRecipe بأيقونته الجميلة على شاشة الآيباد ويفتح كأنه تطبيق مثبّت من متجر App Store تماماً!
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapRecipe - Instant Recipe Finder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF6B35',
+                            mint: '#2EC4B6',
+                            bg: '#FAFAFA',
+                            dark: '#1E293B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Tajawal', 'sans-serif'],
+                        arabic: ['Tajawal', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-brand-bg text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-orange selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="resetToHome()">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-orange to-amber-400 flex items-center justify-center text-white shadow-md shadow-brand-orange/30">
+                    <i class="fa-solid fa-bolt text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">Snap<span class="text-brand-orange">Recipe</span></span>
+                    <span class="block text-[10px] font-semibold text-slate-400 -mt-1 tracking-wider uppercase" id="tagline">Zero Waste Cooking</span>
+                </div>
+            </div>
+
+            <!-- Actions Right -->
+            <div class="flex items-center gap-3">
+                <!-- Favorites Count -->
+                <button onclick="showFavorites()" class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                    <i class="fa-solid fa-heart text-lg text-rose-500"></i>
+                    <span id="fav-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+
+                <!-- Language Switcher -->
+                <div class="relative">
+                    <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-100 border-none text-slate-700 text-sm font-semibold py-2 px-3 pr-8 rounded-xl appearance-none cursor-pointer focus:ring-2 focus:ring-brand-orange/50 outline-none">
+                        <option value="en">🇬🇧 EN</option>
+                        <option value="de">🇩🇪 DE</option>
+                        <option value="fr">🇫🇷 FR</option>
+                        <option value="es">🇪🇸 ES</option>
+                        <option value="ar">🇸🇦 العربية</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-3 text-xs text-slate-400 pointer-events-none"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
+        
+        <!-- Hero Section -->
+        <section id="hero-section" class="text-center my-6">
+            <h1 id="main-title" class="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+                What's in your fridge?
+            </h1>
+            <p id="main-subtitle" class="text-slate-500 text-sm md:text-base mt-2 max-w-lg mx-auto">
+                Select your ingredients and let SnapRecipe find instant dishes you can make right now.
+            </p>
+        </section>
+
+        <!-- Search & Filter Bar -->
+        <div class="mb-6 flex flex-col md:flex-row gap-3 items-center justify-between">
+            <div class="relative w-full md:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="text" id="ingredient-search" oninput="filterIngredients()" placeholder="Search ingredients..." class="w-full bg-white border border-slate-200 rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 transition shadow-sm">
+            </div>
+
+            <!-- Pantry Staples Toggle -->
+            <label class="flex items-center gap-2 cursor-pointer bg-emerald-50 text-emerald-800 px-4 py-2 rounded-2xl border border-emerald-100 text-xs font-semibold select-none w-full md:w-auto justify-center">
+                <input type="checkbox" id="include-pantry" checked onchange="togglePantryStaples()" class="w-4 h-4 accent-brand-mint rounded">
+                <span id="pantry-text">Include basic pantry staples (Oil, Salt, Pepper, Water)</span>
+            </label>
+        </div>
+
+        <!-- Ingredient Selection Grid -->
+        <section id="ingredient-section" class="mb-8">
+            <div class="flex items-center justify-between mb-3">
+                <span id="selected-count-text" class="text-xs font-bold uppercase tracking-wider text-slate-400">0 Ingredients Selected</span>
+                <button onclick="clearSelection()" class="text-xs font-semibold text-rose-500 hover:underline hidden" id="clear-btn">Clear All</button>
+            </div>
+
+            <div id="ingredients-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                <!-- Dynamic Ingredients Injected Here -->
+            </div>
+        </section>
+
+        <!-- Action Bar -->
+        <div class="sticky bottom-6 z-40 bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xl flex items-center justify-between gap-4 max-w-2xl mx-auto">
+            <button onclick="getSurpriseRecipe()" class="flex-1 sm:flex-none px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-dice text-brand-orange"></i>
+                <span id="surprise-btn-text">Surprise Me</span>
+            </button>
+
+            <button onclick="findRecipes()" id="find-recipes-btn" class="flex-1 px-6 py-3 bg-gradient-to-r from-brand-orange to-amber-500 hover:opacity-95 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-brand-orange/30 flex items-center justify-center gap-2 transition transform active:scale-95">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span id="find-btn-text">Find Recipes</span>
+                <span id="btn-count-badge" class="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs hidden">0</span>
+            </button>
+        </div>
+
+        <!-- Recipes Results View -->
+        <section id="results-section" class="mt-10 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 id="results-title" class="text-2xl font-bold text-slate-900">Recommended Recipes</h2>
+                    <p id="results-subtitle" class="text-xs text-slate-500">Sorted by best match for your ingredients</p>
+                </div>
+                <button onclick="hideResults()" class="text-xs font-bold text-brand-orange hover:underline">
+                    ← <span id="back-text">Modify Ingredients</span>
+                </button>
+            </div>
+
+            <div id="recipes-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Recipe Cards Rendered Here -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-6 mt-12">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <p class="text-xs text-slate-400">© 2026 SnapRecipe. Designed for zero food waste and effortless cooking.</p>
+        </div>
+    </footer>
+
+    <!-- Recipe Modal Details -->
+    <div id="recipe-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 relative shadow-2xl animate-fade-in">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center font-bold">✕</button>
+            <div id="modal-content">
+                <!-- Modal details dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script Engine -->
+    <script>
+        // Dictionary Translations
+        const i18n = {
+            en: {
+                tagline: "Zero Waste Cooking",
+                mainTitle: "What's in your fridge?",
+                mainSubtitle: "Select ingredients you have, and SnapRecipe will instantly find dishes you can make right now.",
+                searchPlaceholder: "Search ingredients...",
+                pantryText: "Include basic pantry staples (Oil, Salt, Pepper, Water)",
+                selectedCount: "Selected Ingredients",
+                clearAll: "Clear All",
+                surpriseBtn: "Surprise Me",
+                findBtn: "Find Recipes",
+                resultsTitle: "Recommended Recipes",
+                resultsSubtitle: "Sorted by highest match for your ingredients",
+                backText: "Modify Ingredients",
+                match100: "100% Match",
+                matchPartial: "Match",
+                missingText: "Missing",
+                prepTime: "mins",
+                easy: "Easy",
+                medium: "Medium",
+                viewRecipe: "View Recipe",
+                ingredientsTitle: "Ingredients Required:",
+                stepsTitle: "Instructions:",
+                noRecipes: "No recipes found matching your selected ingredients. Try selecting a few more items!"
+            },
+            de: {
+                tagline: "Kochen Ohne Verschwendung",
+                mainTitle: "Was ist in deinem Kühlschrank?",
+                mainSubtitle: "Wähle deine Zutaten aus und SnapRecipe findet sofort passendes Essen.",
+                searchPlaceholder: "Zutaten suchen...",
+                pantryText: "Grundzutaten einschließen (Öl, Salz, Pfeffer, Wasser)",
+                selectedCount: "Ausgewählte Zutaten",
+                clearAll: "Alles löschen",
+                surpriseBtn: "Überrasche mich",
+                findBtn: "Rezepte finden",
+                resultsTitle: "Empfohlene Rezepte",
+                resultsSubtitle: "Sortiert nach bester Übereinstimmung",
+                backText: "Zutaten ändern",
+                match100: "100% Treffer",
+                matchPartial: "Übereinstimmung",
+                missingText: "Fehlt",
+                prepTime: "Min",
+                easy: "Einfach",
+                medium: "Mittel",
+                viewRecipe: "Rezept anzeigen",
+                ingredientsTitle: "Benötigte Zutaten:",
+                stepsTitle: "Anleitung:",
+                noRecipes: "Keine Rezepte gefunden. Wähle mehr Zutaten aus!"
+            },
+            fr: {
+                tagline: "Cuisine Anti-Gaspillage",
+                mainTitle: "Qu'y a-t-il dans votre frigo ?",
+                mainSubtitle: "Sélectionnez vos ingrédients et SnapRecipe trouve instantanément vos recettes.",
+                searchPlaceholder: "Chercher un ingrédient...",
+                pantryText: "Inclure les ingrédients de base (Huile, Sel, Poivre, Eau)",
+                selectedCount: "Ingrédients sélectionnés",
+                clearAll: "Tout effacer",
+                surpriseBtn: "Surprenez-moi",
+                findBtn: "Trouver des recettes",
+                resultsTitle: "Recettes recommandées",
+                resultsSubtitle: "Triées par meilleure correspondance",
+                backText: "Modifier les ingrédients",
+                match100: "Correspondance 100%",
+                matchPartial: "Correspondance",
+                missingText: "Manquant",
+                prepTime: "min",
+                easy: "Facile",
+                medium: "Moyen",
+                viewRecipe: "Voir la recette",
+                ingredientsTitle: "Ingrédients requis :",
+                stepsTitle: "Instructions :",
+                noRecipes: "Aucune recette trouvée. Essayez de sélectionner plus d'ingrédients !"
+            },
+            es: {
+                tagline: "Cocina Sin Desperdicio",
+                mainTitle: "¿Qué hay en tu nevera?",
+                mainSubtitle: "Selecciona tus ingredientes y SnapRecipe encontrará recetas al instante.",
+                searchPlaceholder: "Buscar ingredientes...",
+                pantryText: "Incluir básicos (Aceite, Sal, Pimienta, Agua)",
+                selectedCount: "Ingredientes seleccionados",
+                clearAll: "Borrar todo",
+                surpriseBtn: "Sorpréndeme",
+                findBtn: "Buscar Recetas",
+                resultsTitle: "Recetas Recomendadas",
+                resultsSubtitle: "Ordenadas por mayor coincidencia",
+                backText: "Modificar ingredientes",
+                match100: "100% Coincidencia",
+                matchPartial: "Coincidencia",
+                missingText: "Falta",
+                prepTime: "min",
+                easy: "Fácil",
+                medium: "Medio",
+                viewRecipe: "Ver Receta",
+                ingredientsTitle: "Ingredientes requeridos:",
+                stepsTitle: "Instrucciones:",
+                noRecipes: "¡No se encontraron recetas! Intenta seleccionar más ingredientes."
+            },
+            ar: {
+                tagline: "طبخ بدون هدر",
+                mainTitle: "ماذا يوجد في ثلاجتك اليوم؟",
+                mainSubtitle: "حدد المكونات المتوفرة لديك، وسيجد لك SnapRecipe وجبات سريعة يمكنك تحضيرها فوراً.",
+                searchPlaceholder: "ابحث عن مكون...",
+                pantryText: "تضمين المكونات الأساسية (زيت، ملح، فلفل، ماء)",
+                selectedCount: "المكونات المحددة",
+                clearAll: "مسح الكل",
+                surpriseBtn: "فاجئني بوصفة",
+                findBtn: "ابحث عن الوصفات",
+                resultsTitle: "الوصفات المقترحة",
+                resultsSubtitle: "مرتبة حسب أعلى نسبة تطابق مع مكوناتك",
+                backText: "تعديل المكونات",
+                match100: "تطابق 100%",
+                matchPartial: "تطابق",
+                missingText: "ينقصك",
+                prepTime: "دقيقة",
+                easy: "سهل",
+                medium: "متوسط",
+                viewRecipe: "عرض الوصفة",
+                ingredientsTitle: "المكونات المطلوبة:",
+                stepsTitle: "طريقة التحضير:",
+                noRecipes: "لم نجد وصفات تطابق خياراتك الحالية. حاول إضافة بعض المكونات الأخرى!"
+            }
+        };
+
+        // Master Ingredients Dataset
+        const ingredientsData = [
+            { id: "eggs", icon: "🥚", names: { en: "Eggs", de: "Eier", fr: "Œufs", es: "Huevos", ar: "بيض" } },
+            { id: "pasta", icon: "🍝", names: { en: "Pasta", de: "Nudeln", fr: "Pâtes", es: "Pasta", ar: "معكرونة" } },
+            { id: "rice", icon: "🍚", names: { en: "Rice", de: "Reis", fr: "Riz", es: "Arroz", ar: "أرز" } },
+            { id: "potatoes", icon: "🥔", names: { en: "Potatoes", de: "Kartoffeln", fr: "Pommes de terre", es: "Patatas", ar: "بطاطس" } },
+            { id: "chicken", icon: "🍗", names: { en: "Chicken", de: "Hähnchen", fr: "Poulet", es: "Pollo", ar: "دجاج" } },
+            { id: "tomatoes", icon: "🍅", names: { en: "Tomatoes", de: "Tomaten", fr: "Tomates", es: "Tomates", ar: "طماطم" } },
+            { id: "onions", icon: "🧅", names: { en: "Onions", de: "Zwiebeln", fr: "Oignons", es: "Cebollas", ar: "بصل" } },
+            { id: "garlic", icon: "🧄", names: { en: "Garlic", de: "Knoblauch", fr: "Ail", es: "Ajo", ar: "ثوم" } },
+            { id: "cheese", icon: "🧀", names: { en: "Cheese", de: "Käse", fr: "Fromage", es: "Queso", ar: "جبن" } },
+            { id: "milk", icon: "🥛", names: { en: "Milk", de: "Milch", fr: "Lait", es: "Leche", ar: "حليب" } },
+            { id: "butter", icon: "🧈", names: { en: "Butter", de: "Butter", fr: "Beurre", es: "Mantequilla", ar: "زبدة" } },
+            { id: "mushrooms", icon: "🍄", names: { en: "Mushrooms", de: "Pilze", fr: "Champignons", es: "Champiñones", ar: "فطر" } },
+            { id: "spinach", icon: "🥬", names: { en: "Spinach", de: "Spinat", fr: "Épinards", es: "Espinacas", ar: "سبانخ" } },
+            { id: "bread", icon: "🍞", names: { en: "Bread", de: "Brot", fr: "Pain", es: "Pan", ar: "خبز" } },
+            { id: "tuna", icon: "🐟", names: { en: "Canned Tuna", de: "Thunfisch", fr: "Thon", es: "Atún", ar: "تونا" } }
+        ];
+
+        // Master Recipes Dataset
+        const recipesData = [
+            {
+                id: 1,
+                time: 15,
+                difficulty: "easy",
+                ingredients: ["eggs", "butter", "cheese"],
+                names: {
+                    en: "Cheesy Scrambled Eggs",
+                    de: "Rührei mit Käse",
+                    fr: "Œufs brouillés au fromage",
+                    es: "Huevos revueltos con queso",
+                    ar: "بيض مخفوق بالجبن والزبدة"
+                },
+                steps: {
+                    en: ["Whisk eggs in a bowl with salt and pepper.", "Melt butter in a pan over medium heat.", "Add eggs, stir gently, and fold in cheese before serving."],
+                    de: ["Eier in einer Schüssel mit Salz und Pfeffer verquirlen.", "Butter in einer Pfanne schmelzen.", "Eier dazugeben, sanft rühren und Käse unterheben."],
+                    fr: ["Fouettez les œufs dans un bol avec du sel et du poivre.", "Faites fondre le beurre dans une poêle.", "Ajoutez les œufs, remuez doucement et incorporez le fromage."],
+                    es: ["Bate los huevos en un tazón con sal y pimienta.", "Derrieta la mantequilla en una sartén.", "Agrega los huevos, revuelve suavemente e incorpora el queso."],
+                    ar: ["اخفق البيض في وعاء مع الملح والفلفل.", "أذب الزبدة في مقلاة على نار متوسطة.", "أضف البيض مع التقليب الخفيف، ثم أضف الجبن قبل التقديم."]
+                }
+            },
+            {
+                id: 2,
+                time: 20,
+                difficulty: "easy",
+                ingredients: ["pasta", "tomatoes", "garlic", "onions"],
+                names: {
+                    en: "Quick Tomato Garlic Pasta",
+                    de: "Schnelle Knoblauch-Tomaten-Pasta",
+                    fr: "Pâtes rapides à la tomate et à l'ail",
+                    es: "Pasta rápida con tomate y ajo",
+                    ar: "معكرونة سريعة بصلصة الطماطم والثوم"
+                },
+                steps: {
+                    en: ["Boil pasta according to package instructions.", "Sauté chopped onions and garlic in olive oil.", "Add diced tomatoes, simmer 10 mins, and toss with pasta."],
+                    de: ["Nudeln nach Packungsanweisung kochen.", "Gehackte Zwiebeln und Knoblauch in Öl anbraten.", "Tomaten dazugeben, 10 Min. köcheln lassen und mit Nudeln mischen."],
+                    fr: ["Faites cuire les pâtes.", "Faites revenir les oignons et l'ail hachés.", "Ajoutez les tomates, laissez mijoter 10 min et mélangez aux pâtes."],
+                    es: ["Hirve la pasta.", "Saltea las cebollas y el ajo picados en aceite.", "Agrega los tomates, cocina a fuego lento 10 min y mezcla."],
+                    ar: ["اسلق المعكرونة حسب التعليمات.", "شوّح البصل والثوم المفروم في زيت الزيتون.", "أضف الطماطم، اتركها تتسبك 10 دقائق، ثم اخلطها مع المعكرونة."]
+                }
+            },
+            {
+                id: 3,
+                time: 25,
+                difficulty: "medium",
+                ingredients: ["rice", "chicken", "onions", "garlic"],
+                names: {
+                    en: "One-Pan Chicken Rice",
+                    de: "Hähnchen-Reis-Pfanne",
+                    fr: "Riz au poulet à la poêle",
+                    es: "Arroz con pollo en una sartén",
+                    ar: "أرز بالدجاج والبصل في مقلاة واحدة"
+                },
+                steps: {
+                    en: ["Sear chicken breast pieces in a pan until golden.", "Add chopped onions and garlic, cook for 3 mins.", "Add washed rice and water/broth, cover and simmer for 15 mins."],
+                    de: ["Hähnchenbrust goldbraun anbraten.", "Zwiebeln und Knoblauch hinzufügen, 3 Min. dünsten.", "Reis und Wasser dazugeben, abdecken und 15 Min. köcheln."],
+                    fr: ["Faites dorer le poulet dans une poêle.", "Ajoutez l'oignon et l'ail.", "Ajoutez le riz et l'eau, couvrez et laissez mijoter 15 min."],
+                    es: ["Dora el pollo en una sartén.", "Agrega la cebolla y el ajo.", "Agrega el arroz y agua, tapa y cocina a fuego lento 15 min."],
+                    ar: ["حمر قطع الدجاج في مقلاة حتى تصبح ذهبية.", "أضف البصل والثوم واطبخ لمدة 3 دقائق.", "أضف الأرز المغسول والماء، غطِّ المقلاة واتركها على نار هادئة 15 دقيقة."]
+                }
+            },
+            {
+                id: 4,
+                time: 10,
+                difficulty: "easy",
+                ingredients: ["bread", "tuna", "onions", "cheese"],
+                names: {
+                    en: "Cheesy Tuna Melt Toast",
+                    de: "Thunfisch-Käse-Toast",
+                    fr: "Toast au thon et fromage fondu",
+                    es: "Tostada de atún y queso",
+                    ar: "توست التونا والجبن المحمص"
+                },
+                steps: {
+                    en: ["Mix drained tuna with diced onions and a little mayo/butter.", "Spread over bread slices and top with cheese.", "Toast in a pan or oven until cheese melts."],
+                    de: ["Thunfisch mit Zwiebeln mischen.", "Auf Brot verteilen und mit Käse belegen.", "Im Ofen oder der Pfanne rösten, bis der Käse schmilzt."],
+                    fr: ["Mélangez le thon avec l'oignon.", "Étalez sur le pain et recouvrez de fromage.", "Faites griller jusqu'à ce que le fromage fonde."],
+                    es: ["Mezcla el atún con la cebolla.", "Extiende sobre el pan y cubre con queso.", "Tuesta hasta que el queso se derrita."],
+                    ar: ["اخلط التونا مع البصل المفروم.", "وزع الخليط على شرائح الخبز وضع الجبن فوقه.", "حمّص التوست في المقلاة أو الفرن حتى يذوب الجبن."]
+                }
+            }
+        ];
+
+        // App State
+        let currentLang = "en";
+        let selectedIngredients = new Set();
+        let includePantry = true;
+        let favorites = JSON.parse(localStorage.getItem('snaprecipe_favs') || '[]');
+
+        // Initialize App
+        document.addEventListener("DOMContentLoaded", () => {
+            renderIngredients();
+            updateFavBadge();
+        });
+
+        // Language Switcher Engine
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const isRtl = lang === "ar";
+            document.documentElement.dir = isRtl ? "rtl" : "ltr";
+            document.documentElement.lang = lang;
+
+            // Apply fonts
+            if(isRtl) {
+                document.body.classList.add('font-arabic');
+            } else {
+                document.body.classList.remove('font-arabic');
+            }
+
+            // Translate Text Elements
+            const t = i18n[lang];
+            document.getElementById("tagline").innerText = t.tagline;
+            document.getElementById("main-title").innerText = t.mainTitle;
+            document.getElementById("main-subtitle").innerText = t.mainSubtitle;
+            document.getElementById("ingredient-search").placeholder = t.searchPlaceholder;
+            document.getElementById("pantry-text").innerText = t.pantryText;
+            document.getElementById("clear-btn").innerText = t.clearAll;
+            document.getElementById("surprise-btn-text").innerText = t.surpriseBtn;
+            document.getElementById("find-btn-text").innerText = t.findBtn;
+            document.getElementById("results-title").innerText = t.resultsTitle;
+            document.getElementById("results-subtitle").innerText = t.resultsSubtitle;
+            document.getElementById("back-text").innerText = t.backText;
+
+            updateSelectedCountText();
+            renderIngredients();
+            
+            if(!document.getElementById("results-section").classList.contains("hidden")) {
+                findRecipes();
+            }
+        }
+
+        // Render Ingredients Grid
+        function renderIngredients(filter = "") {
+            const grid = document.getElementById("ingredients-grid");
+            grid.innerHTML = "";
+
+            ingredientsData.forEach(item => {
+                const name = item.names[currentLang] || item.names['en'];
+                if(filter && !name.toLowerCase().includes(filter.toLowerCase())) return;
+
+                const isSelected = selectedIngredients.has(item.id);
+                
+                const card = document.createElement("div");
+                card.className = `p-3.5 rounded-2xl border text-center cursor-pointer select-none transition duration-200 transform active:scale-95 flex flex-col items-center justify-center gap-1.5 ${
+                    isSelected 
+                    ? 'bg-orange-50 border-brand-orange text-brand-orange font-bold shadow-sm' 
+                    : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+                }`;
+                card.onclick = () => toggleIngredient(item.id);
+
+                card.innerHTML = `
+                    <span class="text-2xl">${item.icon}</span>
+                    <span class="text-xs font-semibold leading-tight">${name}</span>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Selection Handlers
+        function toggleIngredient(id) {
+            if(selectedIngredients.has(id)) {
+                selectedIngredients.delete(id);
+            } else {
+                selectedIngredients.add(id);
+            }
+            updateUIState();
+        }
+
+        function updateUIState() {
+            renderIngredients(document.getElementById("ingredient-search").value);
+            updateSelectedCountText();
+            
+            const badge = document.getElementById("btn-count-badge");
+            if(selectedIngredients.size > 0) {
+                badge.innerText = selectedIngredients.size;
+                badge.classList.remove("hidden");
+                document.getElementById("clear-btn").classList.remove("hidden");
+            } else {
+                badge.classList.add("hidden");
+                document.getElementById("clear-btn").classList.add("hidden");
+            }
+        }
+
+        function updateSelectedCountText() {
+            const t = i18n[currentLang];
+            document.getElementById("selected-count-text").innerText = `${selectedIngredients.size} ${t.selectedCount}`;
+        }
+
+        function clearSelection() {
+            selectedIngredients.clear();
+            updateUIState();
+        }
+
+        function filterIngredients() {
+            const query = document.getElementById("ingredient-search").value;
+            renderIngredients(query);
+        }
+
+        function togglePantryStaples() {
+            includePantry = document.getElementById("include-pantry").checked;
+        }
+
+        // Recipe Finding Engine
+        function findRecipes() {
+            const resultsSection = document.getElementById("results-section");
+            const recipesList = document.getElementById("recipes-list");
+            const t = i18n[currentLang];
+
+            recipesList.innerHTML = "";
+
+            // Calculate match scores
+            const scoredRecipes = recipesData.map(recipe => {
+                const req = recipe.ingredients;
+                const matched = req.filter(ing => selectedIngredients.has(ing));
+                const score = req.length > 0 ? (matched.length / req.length) * 100 : 0;
+                const missing = req.filter(ing => !selectedIngredients.has(ing));
+                return { recipe, score, matched, missing };
+            }).sort((a, b) => b.score - a.score);
+
+            if(scoredRecipes.length === 0 || (selectedIngredients.size === 0 && scoredRecipes[0].score === 0)) {
+                recipesList.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400 font-medium">${t.noRecipes}</div>`;
+            } else {
+                scoredRecipes.forEach(({ recipe, score, missing }) => {
+                    const isFav = favorites.includes(recipe.id);
+                    const card = document.createElement("div");
+                    card.className = "bg-white border border-slate-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between";
+
+                    const missingNames = missing.map(m => {
+                        const ingObj = ingredientsData.find(i => i.id === m);
+                        return ingObj ? ingObj.names[currentLang] : m;
+                    }).join(", ");
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                    score === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                }">
+                                    ${score === 100 ? t.match100 : `${Math.round(score)}\%${t.matchPartial}`}
+                                </span>
+                                <button onclick="toggleFav(${recipe.id})" class="text-lg ${isFav ? 'text-rose-500' : 'text-slate-300 hover:text-rose-500'}">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            </div>
+
+                            <h3 class="text-lg font-extrabold text-slate-900 mb-2">${recipe.names[currentLang]}</h3>
+
+                            <div class="flex items-center gap-4 text-xs font-medium text-slate-500 mb-4">
+                                <span><i class="fa-regular fa-clock mr-1"></i>${recipe.time} ${t.prepTime}</span>
+                                <span><i class="fa-solid fa-chart-line mr-1"></i>${recipe.difficulty === 'easy' ? t.easy : t.medium}</span>
+                            </div>
+
+                            ${missing.length > 0 ? `
+                                <p class="text-xs text-rose-500 mb-4">
+                                    <strong>${t.missingText}:</strong>${missingNames}
+                                </p>
+                            ` : ''}
+                        </div>
+
+                        <button onclick="openRecipeModal(${recipe.id})" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition">
+                            ${t.viewRecipe}
+                        </button>
+                    `;
+                    recipesList.appendChild(card);
+                });
+            }
+
+            resultsSection.classList.remove("hidden");
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideResults() {
+            document.getElementById("results-section").classList.add("hidden");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetToHome() {
+            clearSelection();
+            hideResults();
+        }
+
+        function getSurpriseRecipe() {
+            const randomRecipe = recipesData[Math.floor(Math.random() * recipesData.length)];
+            openRecipeModal(randomRecipe.id);
+        }
+
+        // Recipe Modal Engine
+        function openRecipeModal(recipeId) {
+            const recipe = recipesData.find(r => r.id === recipeId);
+            if(!recipe) return;
+
+            const t = i18n[currentLang];
+            const modalContent = document.getElementById("modal-content");
+
+            const reqIngredients = recipe.ingredients.map(ingId => {
+                const ingObj = ingredientsData.find(i => i.id === ingId);
+                return ingObj ? `${ingObj.icon} ${ingObj.names[currentLang]}` : ingId;
+            });
+
+            modalContent.innerHTML = `
+                <h2 class="text-xl font-bold text-slate-900 mb-2">${recipe.names[currentLang]}</h2>
+                <div class="flex items-center gap-3 text-xs text-slate-500 mb-4">
+                    <span>⏱️ ${recipe.time} ${t.prepTime}</span>
+                    <span>📊 ${recipe.difficulty === 'easy' ? t.easy : t.medium}</span>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">${t.ingredientsTitle}</h4>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                        ${reqIngredients.map(i => `<li>${i}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">${t.stepsTitle}</h4>
+                    <ol class="list-decimal list-inside text-sm text-slate-700 space-y-2 leading-relaxed">
+                        ${recipe.steps[currentLang].map(step => `<li>${step}</li>`).join('')}
+                    </ol>
+                </div>
+            `;
+
+            document.getElementById("recipe-modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("recipe-modal").classList.add("hidden");
+        }
+
+        // Favorites Storage
+        function toggleFav(id) {
+            if(favorites.includes(id)) {
+                favorites = favorites.filter(f => f !== id);
+            } else {
+                favorites.push(id);
+            }
+            localStorage.setItem('snaprecipe_favs', JSON.stringify(favorites));
+            updateFavBadge();
+            if(!document.getElementById("results-section").classList.contains("hidden")) {
+                findRecipes();
+            }
+        }
+
+        function updateFavBadge() {
+            const badge = document.getElementById("fav-count");
+            if(favorites.length > 0) {
+                badge.innerText = favorites.length;
+                badge.classList.remove("hidden");
+            } else {
+                badge.classList.add("hidden");
+            }
+        }
+
+        function showFavorites() {
+            if(favorites.length === 0) return;
+            selectedIngredients.clear();
+            findRecipes();
+        }
+    </script>
+</body>
+</html>
+
